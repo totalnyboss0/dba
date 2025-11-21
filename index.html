@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Underground Escape - Horror Multiplayer Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Oswald:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Oswald', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #backgroundCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            z-index: 1;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%);
+        }
+        
+        .game-title {
+            font-family: 'Creepster', cursive;
+            font-size: 5em;
+            color: #ff0000;
+            text-shadow: 0 0 20px rgba(255,0,0,0.5), 0 0 40px rgba(255,0,0,0.3);
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+            letter-spacing: 5px;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #aaa;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,1);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .menu-container {
+            background: linear-gradient(135deg, rgba(20,20,20,0.95), rgba(40,0,0,0.95));
+            border: 2px solid #ff0000;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(255,0,0,0.3), inset 0 0 30px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .mode-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .mode-button {
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #666;
+            color: #fff;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mode-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,0,0,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .mode-button:hover {
+            background: linear-gradient(135deg, #4a0000, #2a0000);
+            border-color: #ff0000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+        
+        .mode-button:hover:before {
+            left: 100%;
+        }
+        
+        .mode-description {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+            font-weight: 400;
+        }
+        
+        .multiplayer-options {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .server-input {
+            margin: 20px 0;
+        }
+        
+        .server-input label {
+            display: block;
+            margin-bottom: 10px;
+            color: #aaa;
+            font-size: 1.1em;
+        }
+        
+        .server-input input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            color: #fff;
+            font-size: 1em;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .server-input input:focus {
+            outline: none;
+            border-color: #ff0000;
+            box-shadow: 0 0 10px rgba(255,0,0,0.3);
+        }
+        
+        .role-selection {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .role-option {
+            flex: 1;
+            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .role-option.selected {
+            background: rgba(255,0,0,0.2);
+            border-color: #ff0000;
+        }
+        
+        .role-option:hover {
+            border-color: #ff6600;
+        }
+        
+        .role-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .back-button {
+            background: transparent;
+            border: 2px solid #666;
+            color: #aaa;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+        
+        .back-button:hover {
+            border-color: #ff0000;
+            color: #fff;
+        }
+        
+        .server-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .server-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .server-item:hover {
+            background: rgba(255,0,0,0.1);
+            border-color: #ff0000;
+        }
+        
+        .server-players {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .credits {
+            position: absolute;
+            bottom: 20px;
+            color: #666;
+            font-size: 0.9em;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top: 3px solid #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: #aaa;
+            font-size: 1.2em;
+        }
+        
+        .settings-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            color: #aaa;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        
+        .settings-button:hover {
+            border-color: #ff0000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="backgroundCanvas"></canvas>
+    
+    <button class="settings-button" onclick="toggleSettings()">⚙️ Ustawienia</button>
+    
+    <div class="container">
+        <h1 class="game-title">UNDERGROUND ESCAPE</h1>
+        <p class="subtitle">Przetrwaj w mrocznym podziemnym parkingu</p>
+        
+        <div class="menu-container" id="mainMenu">
+            <div class="mode-selection">
+                <button class="mode-button" onclick="startSingleplayer()">
+                    🎮 Gra Jednoosobowa
+                    <div class="mode-description">Ucieknij przed zabójcą sterowanym przez AI</div>
+                </button>
+                
+                <button class="mode-button" onclick="showMultiplayerOptions()">
+                    🌐 Gra Wieloosobowa
+                    <div class="mode-description">Graj z innymi jako uciekinier lub zabójca</div>
+                </button>
+                
+                <button class="mode-button" onclick="showTutorial()">
+                    📖 Samouczek
+                    <div class="mode-description">Naucz się podstaw gry</div>
+                </button>
+                
+                <button class="mode-button" onclick="showStatistics()">
+                    📊 Statystyki
+                    <div class="mode-description">Zobacz swoje osiągnięcia</div>
+                </button>
+            </div>
+        </div>
+        
+        <div class="menu-container multiplayer-options" id="multiplayerMenu">
+            <h2 style="margin-bottom: 20px; text-align: center; color: #ff0000;">Tryb Wieloosobowy</h2>
+            
+            <div class="server-input">
+                <label>Nazwa gracza:</label>
+                <input type="text" id="playerName" placeholder="Wprowadź swoją nazwę" maxlength="20" value="Gracz">
+            </div>
+            
+            <div class="role-selection">
+                <div class="role-option" id="survivorRole" onclick="selectRole('survivor')">
+                    <div class="role-icon">🏃</div>
+                    <div>Uciekinier</div>
+                </div>
+                <div class="role-option" id="killerRole" onclick="selectRole('killer')">
+                    <div class="role-icon">🔪</div>
+                    <div>Zabójca</div>
+                </div>
+            </div>
+            
+            <button class="mode-button" onclick="createServer()">
+                🏠 Utwórz Serwer
+                <div class="mode-description">Stwórz własny pokój gry</div>
+            </button>
+            
+            <button class="mode-button" onclick="showServerList()">
+                🔍 Dołącz do Serwera
+                <div class="mode-description">Znajdź istniejącą grę</div>
+            </button>
+            
+            <div class="server-list" id="serverList" style="display: none;">
+                <h3 style="margin-bottom: 10px;">Dostępne serwery:</h3>
+                <div id="serverListContent">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+            
+            <button class="back-button" onclick="showMainMenu()">← Powrót</button>
+        </div>
+        
+        <p class="credits">
+            Stworzono z 🩸 przez Underground Studio | v1.0.0
+        </p>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Ładowanie gry...</div>
+    </div>
+    
+    <script src="js/menu.js"></script>
+    <script src="js/networking.js"></script>
+</body>
+</html>
